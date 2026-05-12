@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import NotificationCenter from './NotificationCenter'
 import QuickCompose from './QuickCompose'
+import { useAgency } from '@/lib/agencyContext'
 
 const titles: Record<string, { title: string; subtitle: string }> = {
   '/dashboard':             { title: 'Dashboard',       subtitle: 'VENDOR PERFORMANCE' },
@@ -19,10 +20,11 @@ const titles: Record<string, { title: string; subtitle: string }> = {
 
 export default function TopBar() {
   const pathname = usePathname()
+  const { brand } = useAgency()
   const match = Object.entries(titles)
     .sort((a, b) => b[0].length - a[0].length)
     .find(([k]) => pathname.startsWith(k))
-  const info = match ? match[1] : { title: 'Innovate.AI', subtitle: 'MARKETING HUB' }
+  const info = match ? match[1] : { title: brand.agencyName, subtitle: 'MARKETING HUB' }
 
   const dateStr = new Date().toLocaleDateString('en-AU', {
     weekday: 'short', day: 'numeric', month: 'short',

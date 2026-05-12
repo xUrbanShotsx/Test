@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import ReapitConnect from '@/components/settings/ReapitConnect'
+import { useAgency, AgencyBrand } from '@/lib/agencyContext'
 
 const INTEGRATIONS = [
   { name: 'Canva',                desc: 'Design social media posts and marketing materials', status: 'connect',   icon: '◈' },
@@ -22,8 +23,47 @@ function CardSection({ title, children }: { title: string; children: React.React
   )
 }
 
+const FIELDS: { key: keyof AgencyBrand; label: string }[] = [
+  { key: 'agencyName', label: 'Agency Name' },
+  { key: 'agentName',  label: 'Agent Name' },
+  { key: 'email',      label: 'Email' },
+  { key: 'phone',      label: 'Phone' },
+  { key: 'website',    label: 'Website' },
+  { key: 'suburb',     label: 'Default Suburb' },
+]
+
 export default function SettingsPage() {
+  const { brand, update, initials } = useAgency()
+
+  // Local draft — buffered until Save
+  const [draft, setDraft] = useState<AgencyBrand>({ ...brand })
   const [saved, setSaved] = useState(false)
+  const [aiSaved, setAiSaved] = useState(false)
+  const [notifications, setNotifications] = useState([
+    { label: 'Hot lead activity (score 80+)',        on: true },
+    { label: 'Appraisal reminders (24h before)',     on: true },
+    { label: 'SMS replies received',                 on: true },
+    { label: 'Email campaign open milestones',       on: false },
+    { label: 'New vendor enquiry via website',       on: true },
+    { label: 'Weekly performance digest',            on: false },
+  ])
+
+  const logoRef = useRef<HTMLInputElement>(null)
+  const [logoSrc, setLogoSrc] = useState<string | null>(null)
+
+  function handleSave() {
+    update(draft)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2200)
+  }
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => setLogoSrc(ev.target?.result as string)
+    reader.readAsDataURL(file)
+  }
 
   return (
     <div style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -33,22 +73,23 @@ export default function SettingsPage() {
 
       {/* Agency */}
       <CardSection title="Agency Settings">
-        <div style={{ fontSize: 12, color: 'var(--mute)', marginBottom: 18, marginTop: -10 }}>Your brand details used across all campaigns</div>
+        <div style={{ fontSize: 12, color: 'var(--mute)', marginBottom: 18, marginTop: -10 }}>
+          Your brand details — applied across all campaigns and the entire app
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          {[
-            ['Agency Name', 'Innovate.AI Realty'],
-            ['Agent Name', 'James Spinelli'],
-            ['Email', 'james@innovate-ai.com.au'],
-            ['Phone', '0412 345 678'],
-            ['Website', 'www.innovate-ai.com.au'],
-            ['Default Suburb', 'Wollongong NSW'],
-          ].map(([label, val]) => (
-            <div key={label}>
+          {FIELDS.map(({ key, label }) => (
+            <div key={key}>
               <label className="label-upper">{label}</label>
-              <input defaultValue={val} className="input" />
+              <input
+                value={draft[key]}
+                onChange={e => setDraft(d => ({ ...d, [key]: e.target.value }))}
+                className="input"
+              />
             </div>
           ))}
         </div>
+
+        {/* Logo */}
         <div style={{ marginTop: 18 }}>
           <label className="label-upper">Agency Logo</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -58,17 +99,32 @@ export default function SettingsPage() {
               borderRadius: 8,
               background: 'var(--canvas-soft)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--ink)',
-            }}>I</div>
-            <button className="btn btn-ghost" style={{ fontSize: 12 }}>Upload Logo</button>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>PNG or SVG · min 200×200px</span>
+              overflow: 'hidden',
+            }}>
+              {logoSrc
+                ? <img src={logoSrc} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--ink)' }}>{initials[0]}</span>
+              }
+            </div>
+            <input ref={logoRef} type="file" accept="image/png,image/svg+xml" style={{ display: 'none' }} onChange={handleLogoChange} />
+            <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => logoRef.current?.click()}>
+              Upload Logo
+            </button>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              PNG or SVG · min 200×200px
+            </span>
           </div>
         </div>
-        <div style={{ marginTop: 18, display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000) }}>
+
+        <div style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={handleSave}>
             {saved ? '✓ Saved' : 'Save Changes'}
           </button>
-          <button className="btn btn-ghost" style={{ fontSize: 12 }}>Preview Brand Card</button>
+          {saved && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Applied across app
+            </span>
+          )}
         </div>
       </CardSection>
 
@@ -124,33 +180,32 @@ export default function SettingsPage() {
           </div>
           <div>
             <label className="label-upper">Primary Market / Focus Area</label>
-            <input defaultValue="Illawarra / Wollongong region, NSW" className="input" />
+            <input defaultValue={brand.suburb} className="input" />
           </div>
         </div>
-        <button className="btn btn-primary" style={{ marginTop: 18, fontSize: 12 }}>Save AI Settings</button>
+        <button className="btn btn-primary" style={{ marginTop: 18, fontSize: 12 }}
+          onClick={() => { setAiSaved(true); setTimeout(() => setAiSaved(false), 2200) }}>
+          {aiSaved ? '✓ Saved' : 'Save AI Settings'}
+        </button>
       </CardSection>
 
       {/* Notifications */}
       <CardSection title="Notification Preferences">
         <div style={{ fontSize: 12, color: 'var(--mute)', marginBottom: 18, marginTop: -10 }}>Choose what alerts you receive</div>
-        {[
-          { label: 'Hot lead activity (score 80+)',        on: true },
-          { label: 'Appraisal reminders (24h before)',     on: true },
-          { label: 'SMS replies received',                 on: true },
-          { label: 'Email campaign open milestones',       on: false },
-          { label: 'New vendor enquiry via website',       on: true },
-          { label: 'Weekly performance digest',            on: false },
-        ].map(n => (
+        {notifications.map((n, i) => (
           <div key={n.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--hairline)' }}>
             <span style={{ fontSize: 13, color: 'var(--body-text)' }}>{n.label}</span>
-            <div style={{
-              width: 36, height: 20,
-              borderRadius: 'var(--radius-pill)',
-              cursor: 'pointer',
-              background: n.on ? 'var(--ink)' : 'var(--canvas-mid)',
-              border: '1px solid var(--hairline)',
-              position: 'relative',
-            }}>
+            <div
+              onClick={() => setNotifications(prev => prev.map((x, j) => j === i ? { ...x, on: !x.on } : x))}
+              style={{
+                width: 36, height: 20,
+                borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer',
+                background: n.on ? 'var(--ink)' : 'var(--canvas-mid)',
+                border: '1px solid var(--hairline)',
+                position: 'relative',
+                transition: 'background 0.15s',
+              }}>
               <div style={{
                 position: 'absolute', top: 2,
                 left: n.on ? 18 : 2,

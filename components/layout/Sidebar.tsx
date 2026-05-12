@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAgency } from '@/lib/agencyContext'
 
 const nav = [
   {
@@ -35,6 +36,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
+  const { brand, initials } = useAgency()
 
   return (
     <aside style={{
@@ -73,7 +75,7 @@ export default function Sidebar() {
               color: 'var(--ink)',
               letterSpacing: '-0.02em',
               fontFamily: 'var(--font-display)',
-            }}>Innovate.AI</div>
+            }}>{brand.agencyName}</div>
             <div style={{
               fontSize: 10,
               color: 'var(--mute)',
@@ -192,7 +194,7 @@ export default function Sidebar() {
             color: 'var(--body-text)',
             flexShrink: 0,
             textTransform: 'uppercase',
-          }}>JS</div>
+          }}>{initials}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: 13,
@@ -201,7 +203,7 @@ export default function Sidebar() {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-            }}>James Spinelli</div>
+            }}>{brand.agentName}</div>
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 9,
@@ -209,7 +211,7 @@ export default function Sidebar() {
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginTop: 2,
-            }}>Agent · Innovate.AI</div>
+            }}>Agent · {brand.agencyName}</div>
           </div>
           {/* Online indicator */}
           <div style={{

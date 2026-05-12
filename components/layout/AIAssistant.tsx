@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useAgency } from '@/lib/agencyContext'
 
 interface Message { role: 'user' | 'assistant'; text: string }
 
@@ -31,6 +32,7 @@ function getResponse(msg: string): string {
 }
 
 export default function AIAssistant() {
+  const { brand } = useAgency()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', text: "Hi! I'm your AI marketing assistant. Ask me anything — from lead strategy to drafting messages and market insights." }
@@ -104,7 +106,7 @@ export default function AIAssistant() {
               }}>AI</div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 400, color: 'var(--ink)' }}>AI Assistant</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Claude · Innovate.AI</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Claude · {brand.agencyName}</div>
               </div>
             </div>
           </div>
