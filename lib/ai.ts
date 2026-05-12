@@ -1,7 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk'
 
+// The ?? 'build-placeholder' prevents the Anthropic constructor from throwing
+// at build time when ANTHROPIC_API_KEY is not in Vercel's build environment.
+// All AI routes have try/catch that return graceful fallback responses if the
+// key is missing or invalid at runtime.
 export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY ?? 'build-placeholder',
 })
 
 export const MODEL = 'claude-sonnet-4-6'
