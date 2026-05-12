@@ -1,35 +1,39 @@
 import { PrismaClient } from '@prisma/client'
 
 /**
- * Lazy Prisma singleton — never crashes at module initialisation.
- * On Vercel without a DATABASE_URL the first actual query will throw,
- * which every API route catches and handles by returning mock data.
+ * Lazy Prisma singleton.
+ * Returns null if DATABASE_URL is missing or is the build-time dummy,
+ * so every API route falls through to its mock-data fallback.
  */
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-function createPrismaClient() {
-  // If no DATABASE_URL is set, return a stub that throws on use
-  if (!process.env.DATABASE_URL) {
-    return null
-  }
+const DUMMY_URLS = [
+  'postgresql://dummy:dummy@dummy.dummy.com:5432/dummy',
+  'postgresql://user:password@localhost:5432/innovate_ai',
+]
+
+function isDummyUrl(url: string) {
+  return DUMMY_URLS.some(d => url.startsWith(d))
+}
+
+function createClient(): PrismaClient | null {
+  const url = process.env.DATABASE_URL
+  if (!url || isDummyUrl(url)) return null
   try {
-    return new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['error'] : [],
-    })
+    return new PrismaClient({ log: [] })
   } catch {
     return null
   }
 }
 
 export const prisma: PrismaClient | null =
-  globalForPrisma.prisma ?? createPrismaClient()
+  globalForPrisma.prisma ?? createClient()
 
 if (process.env.NODE_ENV !== 'production' && prisma) {
   globalForPrisma.prisma = prisma
 }
 
-/** Returns true if a real database connection is configured */
 export function hasDatabase(): boolean {
-  return !!prisma && !!process.env.DATABASE_URL
+  return !!prisma
 }

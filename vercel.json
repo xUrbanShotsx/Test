@@ -1,10 +1,9 @@
 {
   "framework": "nextjs",
-  "buildCommand": "prisma generate && next build",
+  "buildCommand": "npx prisma generate && npx next build",
   "installCommand": "npm install",
+  "regions": ["syd1"],
   "env": {
-    "DATABASE_URL": "@database_url",
-    "DATABASE_URL_UNPOOLED": "@database_url_unpooled"
-  },
-  "regions": ["syd1"]
+    "DATABASE_URL": "postgresql://dummy:dummy@dummy.dummy.com:5432/dummy?sslmode=require"
+  }
 }
