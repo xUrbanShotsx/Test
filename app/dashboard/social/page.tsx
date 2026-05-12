@@ -36,10 +36,10 @@ function SocialPageInner() {
       {/* Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {metrics.map((m) => (
-          <div key={m.label} className="card" style={{ padding: '16px 18px' }}>
-            <div style={{ fontSize: 24, fontWeight: 900, color: 'var(--fg)', letterSpacing: '-0.03em', marginBottom: 4 }}>{m.value}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg2)', marginBottom: 2 }}>{m.label}</div>
-            <div style={{ fontSize: 11, color: 'var(--fg4)' }}>{m.sub}</div>
+          <div key={m.label} className="card" style={{ padding: '18px 20px' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{m.label}</div>
+            <div style={{ fontSize: 30, fontWeight: 400, color: 'var(--ink)', letterSpacing: '-0.03em', lineHeight: 1 }}>{m.value}</div>
+            <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 5 }}>{m.sub}</div>
           </div>
         ))}
       </div>
@@ -50,13 +50,13 @@ function SocialPageInner() {
           {TABS.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{
-                padding: '13px 16px', fontSize: 12,
-                fontWeight: activeTab === tab ? 700 : 500,
-                color: activeTab === tab ? 'var(--fg)' : 'var(--fg3)',
+                padding: '12px 16px', fontSize: 13, fontWeight: 400,
+                color: activeTab === tab ? 'var(--ink)' : 'var(--mute)',
                 background: 'none', border: 'none',
-                borderBottom: activeTab === tab ? '2px solid var(--fg)' : '2px solid transparent',
+                borderBottom: activeTab === tab ? '1px solid var(--ink)' : '1px solid transparent',
                 cursor: 'pointer', marginBottom: -1,
-                display: 'flex', alignItems: 'center', gap: 6,
+                fontFamily: 'var(--font-display)',
+                display: 'flex', alignItems: 'center', gap: 7,
               }}>
               {tab}
               {tab === 'Accounts' && <AccountsBadge />}
@@ -89,9 +89,12 @@ function AccountsBadge() {
   if (count === null) return null
   return (
     <span style={{
-      fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 99,
-      background: count > 0 ? 'var(--fg)' : 'var(--surface3)',
-      color: count > 0 ? 'var(--bg)' : 'var(--fg3)',
+      fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 400,
+      padding: '1px 6px', borderRadius: 'var(--radius-pill)',
+      border: '1px solid var(--hairline)',
+      background: count > 0 ? 'var(--ink)' : 'transparent',
+      color: count > 0 ? 'var(--canvas)' : 'var(--mute)',
+      textTransform: 'uppercase', letterSpacing: '0.06em',
     }}>{count > 0 ? count : '!'}</span>
   )
 }

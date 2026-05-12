@@ -31,8 +31,8 @@ export default function ChannelPerformanceChart() {
     <div className="card" style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg)' }}>Lead Generation Trend</div>
-          <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 3 }}>Vendor vs buyer leads · last 8 weeks</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Lead Generation Trend</div>
+          <div style={{ fontSize: 13, color: 'var(--ink)' }}>Vendor vs buyer leads · last 8 weeks</div>
         </div>
         <div style={{ display: 'flex', gap: 14 }}>
           {[{ label: 'Vendor', color: '#fff' }, { label: 'Buyer', color: 'var(--fg3)' }].map(l => (

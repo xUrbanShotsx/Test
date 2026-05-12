@@ -23,9 +23,9 @@ const TooltipContent = ({ active, payload, label }: any) => {
 export default function LeadFunnelChart() {
   return (
     <div className="card" style={{ padding: 20 }}>
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg)' }}>Vendor Lead Funnel</div>
-        <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 3 }}>68 leads contacted this month · 13.2% listing rate</div>
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5 }}>Vendor Lead Funnel</div>
+        <div style={{ fontSize: 13, color: 'var(--ink)' }}>68 leads contacted this month · 13.2% listing rate</div>
       </div>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={vendorData} barSize={28} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
@@ -42,8 +42,8 @@ export default function LeadFunnelChart() {
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
         {vendorData.map(d => (
           <div key={d.stage} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--fg)' }}>{d.count}</div>
-            <div style={{ fontSize: 10, color: 'var(--fg3)' }}>{d.pct}%</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--ink)', letterSpacing: '-0.02em' }}>{d.count}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', marginTop: 2 }}>{d.pct}%</div>
           </div>
         ))}
       </div>

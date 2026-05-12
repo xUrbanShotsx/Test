@@ -67,13 +67,13 @@ export default function AIAssistant() {
         style={{
           position: 'fixed', bottom: 24, right: 24,
           width: 48, height: 48,
-          background: open ? 'var(--surface3)' : 'var(--fg)',
-          color: open ? 'var(--fg)' : 'var(--bg)',
-          border: open ? '1px solid var(--border)' : 'none',
+          background: open ? 'var(--canvas-soft)' : 'var(--ink)',
+          color: open ? 'var(--ink)' : 'var(--canvas)',
+          border: '1px solid var(--hairline)',
           borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 20, fontWeight: 900, cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+          fontSize: 20, fontWeight: 400, cursor: 'pointer',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.6)',
           zIndex: 100,
           letterSpacing: '-0.04em',
           transition: 'all 0.15s',
@@ -88,18 +88,23 @@ export default function AIAssistant() {
         <div style={{
           position: 'fixed', bottom: 84, right: 24,
           width: 400, height: 560,
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 12, boxShadow: '0 12px 48px rgba(0,0,0,0.5)',
+          background: 'var(--canvas-card)', border: '1px solid var(--hairline)',
+          borderRadius: 8, boxShadow: '0 16px 60px rgba(0,0,0,0.7)',
           zIndex: 99, display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
         }}>
           {/* Header */}
-          <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+          <div style={{ padding: '14px 18px 12px', borderBottom: '1px solid var(--hairline)', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 28, height: 28, background: 'var(--fg)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: 'var(--bg)', flexShrink: 0 }}>✦</div>
+              <div style={{
+                padding: '3px 10px', borderRadius: 'var(--radius-pill)',
+                border: '1px solid var(--hairline)',
+                fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink)',
+                textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0,
+              }}>AI</div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--fg)' }}>AI Assistant</div>
-                <div style={{ fontSize: 10, color: 'var(--fg4)' }}>Powered by Claude · Innovate.AI</div>
+                <div style={{ fontSize: 13, fontWeight: 400, color: 'var(--ink)' }}>AI Assistant</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Claude · Innovate.AI</div>
               </div>
             </div>
           </div>
@@ -110,10 +115,10 @@ export default function AIAssistant() {
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
                   maxWidth: '88%', padding: '10px 13px', borderRadius: m.role === 'user' ? '10px 10px 2px 10px' : '10px 10px 10px 2px',
-                  background: m.role === 'user' ? 'var(--fg)' : 'var(--surface2)',
-                  color: m.role === 'user' ? 'var(--bg)' : 'var(--fg)',
+                  background: m.role === 'user' ? 'var(--ink)' : 'var(--canvas-soft)',
+                  color: m.role === 'user' ? 'var(--canvas)' : 'var(--body-text)',
                   fontSize: 12, lineHeight: 1.6,
-                  border: m.role === 'assistant' ? '1px solid var(--border)' : 'none',
+                  border: m.role === 'assistant' ? '1px solid var(--hairline)' : 'none',
                 }}>
                   {m.text.split('\n').map((line, j) => {
                     const bold = line.replace(/\*\*(.*?)\*\*/g, (_, t) => `<strong>${t}</strong>`)
@@ -124,7 +129,7 @@ export default function AIAssistant() {
             ))}
             {thinking && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px 10px 10px 2px', display: 'flex', gap: 4, alignItems: 'center' }}>
+                <div style={{ padding: '10px 14px', background: 'var(--surface2)', border: '1px solid var(--hairline)', borderRadius: 8, display: 'flex', gap: 4, alignItems: 'center' }}>
                   <span className="dot" /><span className="dot" /><span className="dot" />
                 </div>
               </div>
@@ -137,7 +142,7 @@ export default function AIAssistant() {
             <div style={{ padding: '0 14px 10px', display: 'flex', gap: 6, flexWrap: 'wrap', flexShrink: 0 }}>
               {QUICK_PROMPTS.map(p => (
                 <button key={p} onClick={() => send(p)}
-                  style={{ padding: '5px 9px', borderRadius: 5, fontSize: 10, border: '1px solid var(--border)', background: 'var(--surface2)', color: 'var(--fg3)', cursor: 'pointer', lineHeight: 1.4, textAlign: 'left' }}>
+                  style={{ padding: '4px 10px', borderRadius: 'var(--radius-pill)', fontSize: 10, border: '1px solid var(--hairline)', background: 'transparent', color: 'var(--mute)', cursor: 'pointer', lineHeight: 1.5, textAlign: 'left', fontFamily: 'var(--font-display)' }}>
                   {p}
                 </button>
               ))}
@@ -145,7 +150,7 @@ export default function AIAssistant() {
           )}
 
           {/* Input */}
-          <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+          <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--hairline)', flexShrink: 0 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
               <textarea
                 value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKey}
