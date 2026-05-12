@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  avatarUrl    String?
+  role         String   @default("agent")
+  agencyName   String?
+  agencyLogo   String?
+  primaryColor String   @default("#FFD940")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  socialPosts    SocialPost[]
+  emailCampaigns EmailCampaign[]
+  smsCampaigns   SmsCampaign[]
+  properties     Property[]
+  leads          Lead[]
+  aiGenerations  AiGeneration[]
+}
+
+model Contact {
+  id                String   @id @default(cuid())
+  firstName         String
+  lastName          String
+  email             String?
+  phone             String?
+  mobile            String?
+  type              String   @default("buyer")
+  suburb            String?
+  postcode          String?
+  source            String?
+  tags              String   @default("[]")
+  notes             String?
+  rating            Int      @default(0)
+  isSubscribedEmail Boolean  @default(true)
+  isSubscribedSMS   Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  leads           Lead[]
+  emailRecipients EmailRecipient[]
+  smsRecipients   SmsRecipient[]
+}
+
+model Lead {
+  id           String    @id @default(cuid())
+  contactId    String
+  contact      Contact   @relation(fields: [contactId], references: [id])
+  propertyId   String?
+  property     Property? @relation(fields: [propertyId], references: [id])
+  assignedTo   String?
+  agent        User?     @relation(fields: [assignedTo], references: [id])
+  status       String    @default("new")
+  source       String?
+  score        Int       @default(0)
+  budget       Int?
+  timeline     String?
+  notes        String?
+  lastContact  DateTime?
+  nextFollowUp DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Property {
+  id             String    @id @default(cuid())
+  agentId        String
+  agent          User      @relation(fields: [agentId], references: [id])
+  status         String    @default("draft")
+  listingType    String    @default("sale")
+  propertyClass  String    @default("residential")
+  address        String
+  suburb         String
+  state          String    @default("NSW")
+  postcode       String
+  bedrooms       Int?
+  bathrooms      Int?
+  carSpaces      Int?
+  landArea       Int?
+  buildingArea   Int?
+  price          Int?
+  displayPrice   String?
+  description    String?
+  features       String    @default("[]")
+  images         String    @default("[]")
+  inspections    String    @default("[]")
+  listedDate     DateTime?
+  soldDate       DateTime?
+  soldPrice      Int?
+  marketingBrief String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  leads              Lead[]
+  socialPosts        SocialPost[]
+  emailCampaigns     EmailCampaign[]
+  smsCampaigns       SmsCampaign[]
+  marketingMaterials MarketingMaterial[]
+}
+
+model MarketingMaterial {
+  id            String   @id @default(cuid())
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id])
+  type          String
+  title         String
+  content       String
+  canvaDesignId String?
+  canvaEditUrl  String?
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SocialPost {
+  id           String    @id @default(cuid())
+  authorId     String
+  author       User      @relation(fields: [authorId], references: [id])
+  propertyId   String?
+  property     Property? @relation(fields: [propertyId], references: [id])
+  platforms    String    @default("[]")
+  caption      String
+  hashtags     String    @default("[]")
+  imageUrls    String    @default("[]")
+  canvaDesignId String?
+  status       String    @default("draft")
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  campaignType String?
+  impressions  Int       @default(0)
+  reach        Int       @default(0)
+  clicks       Int       @default(0)
+  engagement   Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model EmailCampaign {
+  id              String    @id @default(cuid())
+  creatorId       String
+  creator         User      @relation(fields: [creatorId], references: [id])
+  propertyId      String?
+  property        Property? @relation(fields: [propertyId], references: [id])
+  name            String
+  subject         String
+  previewText     String?
+  htmlBody        String
+  plainText       String?
+  fromName        String
+  fromEmail       String
+  replyTo         String?
+  status          String    @default("draft")
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  campaignType    String    @default("listing")
+  totalRecipients Int       @default(0)
+  delivered       Int       @default(0)
+  opened          Int       @default(0)
+  clicked         Int       @default(0)
+  bounced         Int       @default(0)
+  unsubscribed    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  recipients EmailRecipient[]
+}
+
+model EmailRecipient {
+  id         String        @id @default(cuid())
+  campaignId String
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id])
+  contactId  String
+  contact    Contact       @relation(fields: [contactId], references: [id])
+  email      String
+  status     String        @default("pending")
+  resendId   String?
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  bouncedAt  DateTime?
+  createdAt  DateTime      @default(now())
+}
+
+model SmsCampaign {
+  id              String    @id @default(cuid())
+  creatorId       String
+  creator         User      @relation(fields: [creatorId], references: [id])
+  propertyId      String?
+  property        Property? @relation(fields: [propertyId], references: [id])
+  name            String
+  body            String
+  status          String    @default("draft")
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  campaignType    String    @default("listing")
+  totalRecipients Int       @default(0)
+  delivered       Int       @default(0)
+  failed          Int       @default(0)
+  replies         Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  recipients SmsRecipient[]
+}
+
+model SmsRecipient {
+  id          String      @id @default(cuid())
+  campaignId  String
+  campaign    SmsCampaign @relation(fields: [campaignId], references: [id])
+  contactId   String
+  contact     Contact     @relation(fields: [contactId], references: [id])
+  mobile      String
+  status      String      @default("pending")
+  twilioSid   String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime    @default(now())
+}
+
+model SmsMessage {
+  id         String   @id @default(cuid())
+  from       String
+  to         String
+  body       String
+  direction  String
+  twilioSid  String   @unique
+  contactId  String?
+  campaignId String?
+  status     String   @default("received")
+  createdAt  DateTime @default(now())
+}
+
+model AiGeneration {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  feature    String
+  prompt     String
+  response   String
+  model      String   @default("claude-sonnet-4-6")
+  tokensIn   Int      @default(0)
+  tokensOut  Int      @default(0)
+  durationMs Int      @default(0)
+  propertyId String?
+  campaignId String?
+  createdAt  DateTime @default(now())
+}
