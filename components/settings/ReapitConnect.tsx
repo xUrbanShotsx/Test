@@ -2,33 +2,23 @@
 
 import { useState, useEffect } from 'react'
 
-interface SyncCounts {
-  contacts: number
-  properties: number
-  applicants: number
-}
-
-interface StatusData {
-  configured: boolean
-  customerId: string | null
-  lastSynced: string | null
-  counts: SyncCounts
-}
-
+interface SyncCounts { contacts: number; properties: number; applicants: number }
+interface StatusData  { configured: boolean; customerId: string | null; lastSynced: string | null; counts: SyncCounts }
 type ConnectState = 'idle' | 'testing' | 'success' | 'error'
-type SyncState = 'idle' | 'syncing' | 'done' | 'error'
+type SyncState    = 'idle' | 'syncing' | 'done'   | 'error'
+type View         = 'connected' | 'form' | 'guide'
 
 export default function ReapitConnect() {
-  const [clientId, setClientId] = useState('')
+  const [view, setView]               = useState<View>('form')
+  const [clientId, setClientId]       = useState('')
   const [clientSecret, setClientSecret] = useState('')
-  const [customerId, setCustomerId] = useState('reapitsales')
-  const [showSecret, setShowSecret] = useState(false)
+  const [customerId, setCustomerId]   = useState('reapitsales')
+  const [showSecret, setShowSecret]   = useState(false)
   const [connectState, setConnectState] = useState<ConnectState>('idle')
-  const [connectMsg, setConnectMsg] = useState('')
-  const [syncState, setSyncState] = useState<SyncState>('idle')
-  const [syncMsg, setSyncMsg] = useState('')
-  const [status, setStatus] = useState<StatusData | null>(null)
-  const [expanded, setExpanded] = useState(true)
+  const [connectMsg, setConnectMsg]   = useState('')
+  const [syncState, setSyncState]     = useState<SyncState>('idle')
+  const [syncMsg, setSyncMsg]         = useState('')
+  const [status, setStatus]           = useState<StatusData | null>(null)
 
   useEffect(() => {
     fetch('/api/reapit/status')
@@ -36,21 +26,21 @@ export default function ReapitConnect() {
       .then((d: StatusData) => {
         setStatus(d)
         if (d.customerId) setCustomerId(d.customerId)
-        if (d.configured) setExpanded(false)
+        if (d.configured) setView('connected')
       })
       .catch(() => null)
   }, [])
 
-  async function handleTest() {
+  async function handleConnect() {
     if (!clientId || !clientSecret) {
-      setConnectMsg('Enter your Client ID and Client Secret first.')
+      setConnectMsg('Enter your Client ID and Client Secret.')
       setConnectState('error')
       return
     }
     setConnectState('testing')
     setConnectMsg('')
     try {
-      const res = await fetch('/api/reapit/test', {
+      const res  = await fetch('/api/reapit/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId, clientSecret, customerId }),
@@ -58,14 +48,15 @@ export default function ReapitConnect() {
       const data = await res.json()
       if (data.ok) {
         setConnectState('success')
-        setConnectMsg(`Connected — ${data.totalNegotiators} agent${data.totalNegotiators !== 1 ? 's' : ''} found in your account.`)
+        setConnectMsg(`${data.totalNegotiators} agent${data.totalNegotiators !== 1 ? 's' : ''} found`)
+        setView('connected')
       } else {
         setConnectState('error')
-        setConnectMsg(data.error ?? 'Connection failed')
+        setConnectMsg(data.error ?? 'Connection failed — check your credentials.')
       }
     } catch {
       setConnectState('error')
-      setConnectMsg('Network error — check your connection.')
+      setConnectMsg('Network error.')
     }
   }
 
@@ -73,20 +64,16 @@ export default function ReapitConnect() {
     setSyncState('syncing')
     setSyncMsg('')
     try {
-      const res = await fetch('/api/reapit/sync', { method: 'POST' })
+      const res  = await fetch('/api/reapit/sync', { method: 'POST' })
       const data = await res.json()
       if (data.ok) {
         setSyncState('done')
         const s = data.synced
-        setSyncMsg(`Synced ${s.totalContacts.toLocaleString()} contacts · ${s.totalProperties.toLocaleString()} properties · ${s.totalApplicants.toLocaleString()} leads`)
-        setStatus(prev => prev ? {
-          ...prev,
-          lastSynced: data.lastSynced,
-          counts: { contacts: s.totalContacts, properties: s.totalProperties, applicants: s.totalApplicants },
-        } : prev)
+        setSyncMsg(`${s.totalContacts.toLocaleString()} contacts · ${s.totalProperties.toLocaleString()} properties · ${s.totalApplicants.toLocaleString()} leads`)
+        setStatus(prev => prev ? { ...prev, lastSynced: data.lastSynced, counts: { contacts: s.totalContacts, properties: s.totalProperties, applicants: s.totalApplicants } } : prev)
       } else {
         setSyncState('error')
-        setSyncMsg(data.error ?? 'Sync failed — check your credentials.')
+        setSyncMsg(data.error ?? 'Sync failed.')
       }
     } catch {
       setSyncState('error')
@@ -95,237 +82,256 @@ export default function ReapitConnect() {
   }
 
   const fmtDate = (iso: string | null) => {
-    if (!iso) return 'Never'
-    const d = new Date(iso)
-    return d.toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    if (!iso) return null
+    return new Date(iso).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   }
 
-  const configured = status?.configured || connectState === 'success'
-
-  return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-      {/* Header */}
-      <div
-        style={{
-          padding: '18px 24px', display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', cursor: 'pointer',
-          borderBottom: expanded ? '1px solid var(--border)' : 'none',
-        }}
-        onClick={() => setExpanded(e => !e)}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 8, background: 'var(--fg)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 13, fontWeight: 900, color: 'var(--bg)', letterSpacing: '-0.03em', flexShrink: 0,
-          }}>R</div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--fg)' }}>Reapit Sales</span>
-              {configured && (
-                <span style={{
-                  fontSize: 9, fontWeight: 800, padding: '2px 7px', borderRadius: 99,
-                  background: 'var(--fg)', color: 'var(--bg)', letterSpacing: '0.06em', textTransform: 'uppercase',
-                }}>CONNECTED</span>
-              )}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 2 }}>
-              {configured
-                ? `Customer: ${customerId} · Last synced ${fmtDate(status?.lastSynced ?? null)}`
-                : 'Connect your Reapit Sales CRM to sync contacts, properties and leads'}
-            </div>
-          </div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fg3)" strokeWidth="2"
-          style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </div>
-
-      {expanded && (
-        <div style={{ padding: 24 }}>
-          {/* Sync stats bar (if connected) */}
-          {configured && status?.lastSynced && (
+  // ── Connected state ────────────────────────────────────────────────────────
+  if (view === 'connected') {
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24,
-            }}>
-              {[
-                { label: 'Contacts', value: status.counts.contacts },
-                { label: 'Properties', value: status.counts.properties },
-                { label: 'Leads', value: status.counts.applicants },
-              ].map(s => (
-                <div key={s.label} style={{
-                  padding: '14px 16px', borderRadius: 8,
-                  background: 'var(--surface2)', border: '1px solid var(--border)',
-                }}>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--fg)', letterSpacing: '-0.04em' }}>
-                    {s.value.toLocaleString()}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 2 }}>{s.label} synced</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Credentials form */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--fg)', marginBottom: -4 }}>
-              API Credentials
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--fg3)', lineHeight: 1.5 }}>
-              Get your credentials from the{' '}
-              <a href="https://developers.reapit.cloud" target="_blank" rel="noopener noreferrer"
-                style={{ color: 'var(--fg)', textDecoration: 'underline' }}>
-                Reapit Developer Portal
-              </a>
-              . Create an app with <strong>Client Credentials</strong> grant type and grant access to{' '}
-              <code style={{ fontFamily: 'monospace', fontSize: 11, background: 'var(--surface2)', padding: '1px 5px', borderRadius: 3 }}>
-                contacts, properties, applicants, negotiators
-              </code>.
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="label-upper">Customer ID</label>
-                <input
-                  className="input"
-                  style={{ width: '100%' }}
-                  value={customerId}
-                  onChange={e => setCustomerId(e.target.value)}
-                  placeholder="e.g. reapitsales"
-                />
-                <div style={{ fontSize: 10, color: 'var(--fg4)', marginTop: 4 }}>Your Reapit account identifier</div>
-              </div>
-              <div>
-                <label className="label-upper">Client ID</label>
-                <input
-                  className="input"
-                  style={{ width: '100%' }}
-                  value={clientId}
-                  onChange={e => setClientId(e.target.value)}
-                  placeholder="Your app client_id"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-
+              width: 36, height: 36, borderRadius: 8,
+              background: 'var(--canvas-soft)', border: '1px solid var(--hairline)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink)',
+            }}>R</div>
             <div>
-              <label className="label-upper">Client Secret</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  className="input"
-                  style={{ width: '100%', paddingRight: 80 }}
-                  type={showSecret ? 'text' : 'password'}
-                  value={clientSecret}
-                  onChange={e => setClientSecret(e.target.value)}
-                  placeholder="Your app client_secret"
-                  autoComplete="new-password"
-                />
-                <button
-                  onClick={() => setShowSecret(s => !s)}
-                  style={{
-                    position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 11, color: 'var(--fg3)', fontWeight: 600,
-                  }}>
-                  {showSecret ? 'Hide' : 'Show'}
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--ink)' }}>Reapit Sales</span>
+                <span style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 9,
+                  padding: '2px 8px', borderRadius: 'var(--radius-pill)',
+                  border: '1px solid var(--hairline)',
+                  background: 'rgba(255,255,255,0.07)',
+                  color: 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.1em',
+                }}>Connected</span>
               </div>
-              <div style={{ fontSize: 10, color: 'var(--fg4)', marginTop: 4 }}>
-                Stored in your .env file — never transmitted to the browser
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {customerId}
+                {status?.lastSynced ? ` · Synced ${fmtDate(status.lastSynced)}` : ''}
               </div>
             </div>
           </div>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: '5px 12px' }}
+            onClick={() => { setView('form'); setConnectState('idle'); setConnectMsg('') }}
+          >Edit credentials</button>
+        </div>
 
-          {/* Action row */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary"
-              style={{ fontSize: 12 }}
-              onClick={handleTest}
-              disabled={connectState === 'testing'}
-            >
-              {connectState === 'testing' ? 'Testing…' : connectState === 'success' ? '✓ Connected' : 'Test Connection'}
-            </button>
-
-            {configured && (
-              <button
-                className="btn btn-ghost"
-                style={{ fontSize: 12 }}
-                onClick={handleSync}
-                disabled={syncState === 'syncing'}
-              >
-                {syncState === 'syncing' ? '↻ Syncing…' : '↻ Sync Now'}
-              </button>
-            )}
-
-            {connectState === 'success' && (
-              <div style={{ fontSize: 11, color: 'var(--fg3)' }}>
-                Add these credentials to your <code style={{ fontFamily: 'monospace', fontSize: 10, background: 'var(--surface2)', padding: '1px 4px', borderRadius: 3 }}>.env</code> file, then restart the server to persist.
-              </div>
-            )}
-          </div>
-
-          {/* Status messages */}
-          {connectMsg && (
-            <div style={{
-              marginTop: 12, padding: '10px 14px', borderRadius: 7, fontSize: 12,
-              background: connectState === 'success' ? 'var(--surface2)' : 'var(--surface2)',
-              border: `1px solid ${connectState === 'error' ? 'var(--border)' : 'var(--border)'}`,
-              color: connectState === 'error' ? 'var(--fg2)' : 'var(--fg)',
-            }}>
-              {connectState === 'error' ? '✕ ' : '✓ '}{connectMsg}
-            </div>
-          )}
-
-          {syncMsg && (
-            <div style={{
-              marginTop: 8, padding: '10px 14px', borderRadius: 7, fontSize: 12,
-              background: 'var(--surface2)', border: '1px solid var(--border)',
-              color: syncState === 'error' ? 'var(--fg2)' : 'var(--fg)',
-            }}>
-              {syncState === 'error' ? '✕ ' : '✓ '}{syncMsg}
-            </div>
-          )}
-
-          {/* How it works */}
-          <div style={{
-            marginTop: 20, paddingTop: 18, borderTop: '1px solid var(--border2)',
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16,
-          }}>
+        {/* Sync stats */}
+        {status?.counts && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
             {[
-              { step: '01', title: 'Contacts synced', body: 'All Reapit contacts appear in your Contacts page, searchable and ready to nurture.' },
-              { step: '02', title: 'Properties synced', body: 'Active listings, under offer and sold properties pulled directly from your Reapit database.' },
-              { step: '03', title: 'Leads synced', body: 'Buyer applicants from Reapit become leads in your Vendor Pipeline and Lead Nurture tool.' },
+              { label: 'Contacts', value: status.counts.contacts },
+              { label: 'Properties', value: status.counts.properties },
+              { label: 'Leads', value: status.counts.applicants },
             ].map(s => (
-              <div key={s.step}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--fg4)', letterSpacing: '0.08em', marginBottom: 4 }}>{s.step}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--fg)', marginBottom: 4 }}>{s.title}</div>
-                <div style={{ fontSize: 11, color: 'var(--fg3)', lineHeight: 1.5 }}>{s.body}</div>
+              <div key={s.label} style={{ padding: '14px 16px', borderRadius: 8, background: 'var(--canvas-soft)', border: '1px solid var(--hairline)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{s.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 400, color: 'var(--ink)', letterSpacing: '-0.03em' }}>{s.value.toLocaleString()}</div>
               </div>
             ))}
           </div>
+        )}
 
-          {/* Env file snippet */}
-          {connectState === 'success' && (
-            <div style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--fg3)', marginBottom: 8 }}>
-                Add to your .env file and restart:
+        {/* Sync button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: 12 }}
+            onClick={handleSync}
+            disabled={syncState === 'syncing'}
+          >
+            {syncState === 'syncing' ? '↻ Syncing…' : '↻ Sync Now'}
+          </button>
+          {syncMsg && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: syncState === 'error' ? 'var(--mute)' : 'var(--ink)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {syncState === 'error' ? '✕ ' : '✓ '}{syncMsg}
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── How to get credentials guide ───────────────────────────────────────────
+  if (view === 'guide') {
+    return (
+      <div className="card" style={{ padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>How to get your Reapit API credentials</div>
+          <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 12px' }} onClick={() => setView('form')}>← Back</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {[
+            { n: '01', title: 'Go to Reapit Foundations', body: 'Visit developers.reapit.cloud and sign in with your Reapit account (same login as your Reapit software).', link: 'https://developers.reapit.cloud', linkLabel: 'Open Reapit Foundations →' },
+            { n: '02', title: 'Create a new app', body: 'Click "Create App" → choose "Client Credentials" grant type. Name it anything (e.g. "Innovate.AI Integration").' },
+            { n: '03', title: 'Set scopes', body: 'In app settings, tick: Contacts, Properties, Applicants, Negotiators. Save the app.' },
+            { n: '04', title: 'Copy your credentials', body: 'From the app detail page, copy the Client ID and Client Secret. Your Customer ID is "reapitsales" (already filled in).' },
+            { n: '05', title: 'Paste and connect', body: 'Come back here, paste both values and click Connect. Done — your database syncs automatically.' },
+          ].map(s => (
+            <div key={s.n} style={{ display: 'flex', gap: 16 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg4)', textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0, marginTop: 2, width: 20 }}>{s.n}</div>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 4 }}>{s.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--body-text)', lineHeight: 1.6, marginBottom: s.link ? 8 : 0 }}>{s.body}</div>
+                {s.link && (
+                  <a href={s.link} target="_blank" rel="noopener noreferrer" style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink)',
+                    textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.08em',
+                    padding: '4px 10px', borderRadius: 'var(--radius-pill)',
+                    border: '1px solid var(--hairline)', display: 'inline-block',
+                  }}>{s.linkLabel}</a>
+                )}
               </div>
-              <pre style={{
-                fontFamily: 'monospace', fontSize: 11, padding: '14px 16px',
-                background: 'var(--surface2)', border: '1px solid var(--border)',
-                borderRadius: 8, color: 'var(--fg2)', lineHeight: 1.7, overflowX: 'auto',
-                whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--hairline)' }}>
+          <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => setView('form')}>
+            I have my credentials →
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Connect form ───────────────────────────────────────────────────────────
+  return (
+    <div className="card" style={{ padding: 24 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 8,
+            background: 'var(--canvas-soft)', border: '1px solid var(--hairline)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink)',
+          }}>R</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 400, color: 'var(--ink)' }}>Connect Reapit Sales</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sync your CRM database</div>
+          </div>
+        </div>
+        <button
+          className="btn btn-ghost"
+          style={{ fontSize: 11, padding: '5px 12px' }}
+          onClick={() => setView('guide')}
+        >
+          How to get credentials
+        </button>
+      </div>
+
+      {/* Form */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label className="label-upper">Customer ID</label>
+            <input
+              className="input"
+              value={customerId}
+              onChange={e => setCustomerId(e.target.value)}
+              placeholder="reapitsales"
+              autoComplete="off"
+            />
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pre-filled for reapitsales</div>
+          </div>
+          <div>
+            <label className="label-upper">Client ID</label>
+            <input
+              className="input"
+              value={clientId}
+              onChange={e => setClientId(e.target.value)}
+              placeholder="From Reapit Foundations"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="label-upper">Client Secret</label>
+          <div style={{ position: 'relative' }}>
+            <input
+              className="input"
+              type={showSecret ? 'text' : 'password'}
+              value={clientSecret}
+              onChange={e => setClientSecret(e.target.value)}
+              placeholder="From Reapit Foundations"
+              autoComplete="new-password"
+              style={{ paddingRight: 70 }}
+            />
+            <button
+              onClick={() => setShowSecret(s => !s)}
+              style={{
+                position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)',
+                textTransform: 'uppercase', letterSpacing: '0.08em',
               }}>
+              {showSecret ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Stored in your .env — never sent to any third party
+          </div>
+        </div>
+      </div>
+
+      {/* Connect button */}
+      <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button
+          className="btn btn-primary"
+          style={{ fontSize: 13, padding: '10px 24px' }}
+          onClick={handleConnect}
+          disabled={connectState === 'testing'}
+        >
+          {connectState === 'testing' ? 'Connecting…' : 'Connect Reapit →'}
+        </button>
+        {connectMsg && (
+          <span style={{
+            fontFamily: 'var(--font-mono)', fontSize: 10,
+            color: connectState === 'error' ? 'var(--mute)' : 'var(--ink)',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+          }}>
+            {connectState === 'error' ? '✕ ' : '✓ '}{connectMsg}
+          </span>
+        )}
+      </div>
+
+      {/* .env snippet on success */}
+      {connectState === 'success' && (
+        <div style={{ marginTop: 18, padding: '14px 16px', borderRadius: 8, background: 'var(--canvas-soft)', border: '1px solid var(--hairline)' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+            Add to your .env file and restart to persist
+          </div>
+          <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--body-text)', lineHeight: 1.8, overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
 {`REAPIT_CLIENT_ID="${clientId}"
 REAPIT_CLIENT_SECRET="${clientSecret}"
 REAPIT_CUSTOMER_ID="${customerId}"`}
-              </pre>
-            </div>
-          )}
+          </pre>
         </div>
       )}
+
+      {/* What syncs */}
+      <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--hairline)', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+        {[
+          { n: '01', title: 'Contacts',   body: 'All Reapit contacts appear in your database, ready to nurture.' },
+          { n: '02', title: 'Properties', body: 'Active, under offer and sold listings pulled automatically.' },
+          { n: '03', title: 'Leads',      body: 'Buyer applicants become vendor pipeline entries.' },
+        ].map(s => (
+          <div key={s.n}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 5 }}>{s.n}</div>
+            <div style={{ fontSize: 12, color: 'var(--ink)', marginBottom: 4 }}>{s.title}</div>
+            <div style={{ fontSize: 11, color: 'var(--mute)', lineHeight: 1.6 }}>{s.body}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
