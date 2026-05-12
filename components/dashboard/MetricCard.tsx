@@ -7,26 +7,61 @@ interface MetricCardProps {
   icon?: string
 }
 
-export default function MetricCard({ label, value, sub, change, positive = true, icon }: MetricCardProps) {
+export default function MetricCard({ label, value, sub, change, positive = true }: MetricCardProps) {
   return (
-    <div className="card" style={{ padding: '18px 20px' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontSize: 12, color: 'var(--fg3)', fontWeight: 500, letterSpacing: '0.01em' }}>{label}</span>
-        {icon && <span style={{ fontSize: 16, opacity: 0.6 }}>{icon}</span>}
+    <div className="card" style={{ padding: '20px 22px' }}>
+      {/* Mono eyebrow label */}
+      <div style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 400,
+        color: 'var(--mute)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.12em',
+        marginBottom: 14,
+      }}>
+        {label}
       </div>
-      <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--fg)', letterSpacing: '-0.04em', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 5 }}>{sub}</div>}
+
+      {/* Value — xAI display style: weight 400, tight tracking */}
+      <div style={{
+        fontSize: 36,
+        fontWeight: 400,
+        color: 'var(--ink)',
+        letterSpacing: '-0.03em',
+        lineHeight: 1,
+        fontFamily: 'var(--font-display)',
+      }}>
+        {value}
+      </div>
+
+      {sub && (
+        <div style={{
+          fontSize: 12,
+          color: 'var(--mute)',
+          marginTop: 6,
+          fontFamily: 'var(--font-display)',
+        }}>
+          {sub}
+        </div>
+      )}
+
       {change && (
-        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ marginTop: 14 }}>
           <span style={{
-            fontSize: 11, fontWeight: 700,
-            color: positive ? 'var(--fg)' : 'var(--fg3)',
-            background: positive ? 'var(--surface3)' : 'transparent',
-            padding: '2px 6px', borderRadius: 4,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            fontWeight: 400,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: positive ? 'var(--ink)' : 'var(--mute)',
+            padding: '3px 8px',
+            borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--hairline)',
+            background: positive ? 'rgba(255,255,255,0.06)' : 'transparent',
           }}>
             {positive ? '↑' : '↓'} {change}
           </span>
-          <span style={{ fontSize: 11, color: 'var(--fg4)' }}>vs last month</span>
         </div>
       )}
     </div>

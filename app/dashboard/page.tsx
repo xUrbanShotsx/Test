@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
       {/* Vendor Metrics */}
       <div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--fg4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 400, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
           Vendor Lead Performance
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
       {/* Buyer Metrics */}
       <div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--fg4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 400, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
           Buyer &amp; Campaign Performance
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
@@ -83,16 +83,16 @@ function VendorPipelineTable() {
     <div className="card" style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg)' }}>Vendor Pipeline</div>
-          <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 2 }}>Potential sellers — ranked by AI score</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Vendor Pipeline</div>
+          <div style={{ fontSize: 13, fontWeight: 400, color: 'var(--ink)', fontFamily: 'var(--font-display)' }}>Potential sellers — ranked by AI score</div>
         </div>
-        <button className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }}>Full pipeline →</button>
+        <button className="btn btn-ghost" style={{ fontSize: 12, padding: '5px 12px' }}>View all →</button>
       </div>
 
       {/* Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px 70px 50px', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px 70px 50px', gap: 10, padding: '5px 0', borderBottom: '1px solid var(--hairline)', marginBottom: 4 }}>
         {['Vendor', 'Stage', 'Source', 'Score', 'Days'].map(h => (
-          <span key={h} style={{ fontSize: 10, color: 'var(--fg4)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</span>
+          <span key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg4)', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
         ))}
       </div>
 
@@ -108,11 +108,15 @@ function VendorPipelineTable() {
             <div style={{ fontSize: 11, color: 'var(--fg3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.address}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: 'var(--fg2)' }}>{l.stage}</div>
+            <div style={{ fontSize: 12, color: 'var(--body-text)', fontFamily: 'var(--font-display)' }}>{l.stage}</div>
             <span style={{
-              fontSize: 10, fontWeight: 700, color: stageColor[l.status],
-              background: 'var(--surface2)', border: '1px solid var(--border)',
-              padding: '1px 6px', borderRadius: 3, display: 'inline-block', marginTop: 2,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9, fontWeight: 400,
+              color: stageColor[l.status],
+              border: '1px solid var(--hairline)',
+              padding: '1px 7px', borderRadius: 'var(--radius-pill)',
+              display: 'inline-block', marginTop: 3,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
             }}>{l.status}</span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--fg3)' }}>{l.source}</div>

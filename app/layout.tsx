@@ -1,5 +1,19 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { Geist_Mono } from 'next/font/google'
 import './globals.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Innovate.AI — Real Estate Marketing Platform',
@@ -8,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className={`h-full ${inter.variable} ${geistMono.variable}`}>
       <body className="h-full">{children}</body>
     </html>
   )
