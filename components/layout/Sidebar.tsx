@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAgency } from '@/lib/agencyContext'
 
 const nav = [
@@ -37,6 +37,12 @@ export default function Sidebar() {
   const isActive = (href: string) =>
     href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
   const { brand, initials } = useAgency()
+  const router = useRouter()
+
+  function handleLogout() {
+    document.cookie = 'propulse_auth=; path=/; max-age=0'
+    router.push('/login')
+  }
 
   return (
     <aside style={{
@@ -222,6 +228,42 @@ export default function Sidebar() {
             flexShrink: 0,
           }} />
         </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          style={{
+            width: '100%',
+            marginTop: 8,
+            padding: '7px 12px',
+            borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--hairline)',
+            background: 'transparent',
+            color: 'var(--mute)',
+            fontSize: 12,
+            fontFamily: 'var(--font-display)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            transition: 'color 0.12s, border-color 0.12s',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--body-text)'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--mute)'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--hairline)'
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Sign out
+        </button>
       </div>
     </aside>
   )
