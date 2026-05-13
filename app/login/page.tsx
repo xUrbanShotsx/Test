@@ -91,7 +91,7 @@ export default function LoginPage() {
             letterSpacing: '-0.03em',
             marginBottom: 6,
           }}>
-            Propulse
+            Innovate.ai
           </div>
           <div style={{
             fontFamily: 'var(--font-mono)',
@@ -235,7 +235,7 @@ export default function LoginPage() {
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
           }}>
-            Powered by Claude · Anthropic
+            Powered by jyesanjurjo
           </div>
         </div>
       </div>
